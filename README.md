@@ -234,8 +234,8 @@ Save or update a note:
 
 ```bash
 curl -i -b cookies.txt -H "Content-Type: application/json" \
-  -X POST http://localhost:8082/entry/note/save \
-  -d '{"entryId":123,"comment":"Useful reference","rating":5}'
+  -X POST http://localhost:8082/rest/entry/note \
+  -d '{"entryId":2,"comment":"Useful reference","rating":5}'
 ```
 
 Example response:
@@ -244,31 +244,31 @@ Example response:
 HTTP/1.1 200 OK
 ```
 
-Retrieve a note:
+List the authenticated user's notes:
 
 ```bash
 curl -s -b cookies.txt \
-  http://localhost:8082/entry/note/get/123
+  http://localhost:8082/rest/entry/note/list
 ```
 
 Example response:
 
 ```json
-{
-  "id": 7,
-  "user": null,
-  "feedEntry": null,
-  "comment": "Useful reference",
-  "rating": 5,
-  "created": "2026-09-13T14:00:00.000+00:00"
-}
+[
+  {
+    "id": 1,
+    "entryId": 2,
+    "comment": "Useful reference",
+    "rating": 5
+  }
+]
 ```
 
 Delete a note:
 
 ```bash
 curl -i -b cookies.txt -X DELETE \
-  http://localhost:8082/entry/note/delete/123
+  http://localhost:8082/rest/entry/note/delete/123
 ```
 
 ### Level 2: LLM alternative generation
@@ -279,13 +279,13 @@ Configure the Google Gemini provider without committing credentials:
 $env:GEMINI_API_KEY = "<your-key>"
 ```
 
-The service targets the Gemini 1.5 Flash
-`generateContent` endpoint. The endpoint accepts
+The service uses the Google Gemini API and targets the
+`gemini-3.5-flash` `generateContent` endpoint. The endpoint accepts
 `target` values `title` or `content` and a prompt:
 
 ```bash
 curl -s -b cookies.txt -H "Content-Type: application/json" \
-  -X POST http://localhost:8082/entry/123/generate-alternative \
+  -X POST http://localhost:8082/rest/entry/123/generate-alternative \
   -d '{"target":"title","prompt":"Make this concise and engaging"}'
 ```
 
@@ -300,7 +300,7 @@ Example successful response:
   },
   "target": "title",
   "prompt": "Make this concise and engaging",
-  "alternative": "A concise, engaging title"
+  "generatedAlternative": "A concise, engaging title"
 }
 ```
 
@@ -334,15 +334,17 @@ blocking newly fetched entries from being stored.
 
 ## My AI workflow
 
-- **Tool selection:** I use repository-aware file search and focused file reads
-  for conventions, `apply_patch` for surgical edits, and the Maven wrapper for
-  formatting, compilation, and tests. I avoid broad searches and unrelated
-  frontend changes when the task is server-side.
-- **Context management:** I inspect the closest analogous class first, then
-  read only the configuration, DTO, service, DAO, and exception files needed to
-  wire the feature consistently. Existing instructions and plans are treated
-  as constraints rather than duplicated in code.
-- **Token optimization:** I batch independent reads, use targeted ranges and
-  search limits, avoid repeating unchanged file contents, and delegate only
-  work that benefits from an independent context. Validation is kept targeted
-  before escalating to broader builds.
+- **Copilot CLI:** I use repository-aware search, focused file reads, and
+  `apply_patch` for precise changes instead of broad rewrites.
+- **Architecture:** I preserve the targeted `REST -> Service -> DAO -> Entity`
+  flow when tracing requests and adding features.
+- **Gemini 3.5 Flash:** I use the configured Google Gemini provider for
+  alternative text generation and keep credentials in environment variables.
+- **Maven wrapper:** I run `.\mvnw.cmd` for Spotless formatting, compilation,
+  Checkstyle, and targeted or full test validation.
+- **Context management:** I inspect the closest analogous implementation first,
+  then load only the DTO, REST, service, DAO, entity, and configuration files
+  needed for the change.
+- **Token optimization:** I batch independent reads, use bounded searches and
+  line ranges, avoid repeating unchanged files, and validate narrowly before
+  escalating to a broader build.
