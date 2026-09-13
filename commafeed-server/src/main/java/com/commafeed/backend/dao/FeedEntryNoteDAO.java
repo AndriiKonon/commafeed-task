@@ -6,6 +6,7 @@ import com.commafeed.backend.model.QFeedEntryNote;
 import com.commafeed.backend.model.User;
 
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 
 import java.util.List;
@@ -16,6 +17,11 @@ public class FeedEntryNoteDAO extends GenericDAO<FeedEntryNote> {
 
     private static final QFeedEntryNote NOTE = QFeedEntryNote.feedEntryNote;
 
+    protected FeedEntryNoteDAO() {
+        super(null, FeedEntryNote.class);
+    }
+
+    @Inject
     public FeedEntryNoteDAO(EntityManager entityManager) {
         super(entityManager, FeedEntryNote.class);
     }
