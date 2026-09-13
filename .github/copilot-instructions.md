@@ -16,3 +16,9 @@ Strictly follow the existing 4-layer architecture of the project:
 - Follow existing code formatting, naming conventions, and logging patterns.
 - Never hardcode secrets or API keys. Read from environment variables.
 - Write clean, maintainable code with proper HTTP status codes.
+
+## Workspace Conventions
+- Target Java 21 for server compilation and tests unless a task explicitly requires another release.
+- Use the Maven wrapper on Windows (`.\mvnw.cmd`) rather than relying on a globally installed Maven executable.
+- Run Spotless with `.\mvnw.cmd spotless:apply -pl commafeed-server`; Java source formatting uses LF line endings.
+- Keep changes scoped to `commafeed-server` and project-level documentation/configuration unless the task explicitly says otherwise.
