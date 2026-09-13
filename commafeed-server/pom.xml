@@ -474,6 +474,11 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-test-security</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>io.quarkiverse.playwright</groupId>
             <artifactId>quarkus-playwright</artifactId>
             <version>2.3.8</version>

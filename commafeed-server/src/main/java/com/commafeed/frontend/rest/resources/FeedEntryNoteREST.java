@@ -21,6 +21,8 @@ import jakarta.ws.rs.core.Response;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
+
 @Path("/rest/entry/note")
 @RolesAllowed(Roles.USER)
 @Produces(MediaType.APPLICATION_JSON)
@@ -33,12 +35,29 @@ public class FeedEntryNoteREST {
     private final FeedEntryNoteService feedEntryNoteService;
 
     @POST
+    public Response saveNote(SaveNoteRequest request) {
+        return saveNoteInternal(request);
+    }
+
+    @POST
     @Path("/save")
     public Response save(SaveNoteRequest request) {
+        return saveNoteInternal(request);
+    }
+
+    private Response saveNoteInternal(SaveNoteRequest request) {
         User user = authenticationContext.getCurrentUser();
         feedEntryNoteService.saveOrUpdateNote(
                 user, request.getEntryId(), request.getComment(), request.getRating());
         return Response.ok().build();
+    }
+
+    @GET
+    @Path("/list")
+    public Response list() {
+        User user = authenticationContext.getCurrentUser();
+        List<FeedEntryNote> notes = feedEntryNoteService.getNotes(user);
+        return Response.ok(notes).build();
     }
 
     @GET

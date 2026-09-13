@@ -22,3 +22,13 @@ This log tracks architectural decisions, corrections, and manual overrides made 
    timeout, and malformed-response failures are converted to safe service
    exceptions. The REST layer returns `503` when the provider is unavailable
    and `502` for upstream failures without exposing stack traces or secrets.
+6. **Switch from Groq to Gemini 3.5 Flash** — The Level 2 alternative-generation
+   integration was changed to Google Gemini 3.5 Flash so the implementation uses
+   the selected provider and its `contents`/`parts` request contract.
+7. **Fix Java HTTP URL concatenation** — The Gemini request builds its URI with
+   `URI.create(API_URL + apiKey)` after keeping the `?key=` suffix in the base
+   URL, avoiding malformed endpoint strings caused by separated concatenation.
+8. **Test keyword notifications through a live feed subscription** — Notification
+   behavior was validated in the refresh pipeline by subscribing to a live test
+   feed and waiting for newly fetched entries, rather than testing only isolated
+   matching helpers.

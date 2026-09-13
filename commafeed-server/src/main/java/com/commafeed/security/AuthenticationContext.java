@@ -21,11 +21,15 @@ public class AuthenticationContext {
             return null;
         }
 
-        String userId = securityIdentity.getPrincipal().getName();
-        if (userId == null) {
+        String principalName = securityIdentity.getPrincipal().getName();
+        if (principalName == null) {
             return null;
         }
 
-        return userDAO.findById(Long.valueOf(userId));
+        try {
+            return userDAO.findById(Long.valueOf(principalName));
+        } catch (NumberFormatException e) {
+            return userDAO.findByName(principalName);
+        }
     }
 }
