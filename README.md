@@ -311,6 +311,28 @@ and an upstream LLM or response-parsing failure returns `502 Bad Gateway`.
 Error responses contain a safe message and never expose a stack trace or API
 credential.
 
+### Level 3: keyword notifications
+
+Set comma-separated keywords to inspect newly fetched entries. Matching is
+case-insensitive and checks both the entry title and HTML-stripped content:
+
+```powershell
+$env:COMMAFEED_KEYWORD_NOTIFICATION_KEYWORDS = "java,quarkus,security"
+$env:COMMAFEED_KEYWORD_NOTIFICATION_CHANNEL = "mock"
+```
+
+The default `mock` channel logs matches. To deliver JSON notifications to a
+webhook instead:
+
+```powershell
+$env:COMMAFEED_KEYWORD_NOTIFICATION_CHANNEL = "webhook"
+$env:COMMAFEED_KEYWORD_NOTIFICATION_WEBHOOK_URL = "https://example.test/feed-events"
+```
+
+Keyword matching and delivery run on a separate bounded notification path. A
+failed webhook is logged and discarded without failing the feed refresh or
+blocking newly fetched entries from being stored.
+
 ## My AI workflow
 
 - **Tool selection:** I use repository-aware file search and focused file reads

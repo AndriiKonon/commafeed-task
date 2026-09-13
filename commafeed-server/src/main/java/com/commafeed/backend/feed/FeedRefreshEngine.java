@@ -10,6 +10,7 @@ import com.commafeed.backend.model.AbstractModel;
 import com.commafeed.backend.model.Feed;
 import com.commafeed.backend.model.FeedEntry;
 import com.commafeed.backend.model.FeedSubscription;
+import com.commafeed.backend.service.KeywordNotificationService;
 import com.google.common.util.concurrent.MoreExecutors;
 
 import jakarta.inject.Singleton;
@@ -37,6 +38,7 @@ public class FeedRefreshEngine {
     private final FeedRefreshWorker worker;
     private final FeedRefreshUpdater updater;
     private final FeedUpdateNotifier notifier;
+    private final KeywordNotificationService keywordNotificationService;
     private final CommaFeedConfiguration config;
     private final Meter refill;
 
@@ -55,6 +57,7 @@ public class FeedRefreshEngine {
             FeedRefreshWorker worker,
             FeedRefreshUpdater updater,
             FeedUpdateNotifier notifier,
+            KeywordNotificationService keywordNotificationService,
             CommaFeedConfiguration config,
             MetricRegistry metrics) {
         this.unitOfWork = unitOfWork;
@@ -62,6 +65,7 @@ public class FeedRefreshEngine {
         this.worker = worker;
         this.updater = updater;
         this.notifier = notifier;
+        this.keywordNotificationService = keywordNotificationService;
         this.config = config;
         this.refill = metrics.meter(MetricRegistry.name(getClass(), "refill"));
 
@@ -205,6 +209,8 @@ public class FeedRefreshEngine {
                                                         List<FeedEntry> entries = e.getValue();
 
                                                         notifier.notifyOverWebsocket(sub, entries);
+                                                        keywordNotificationService.notifyAsync(
+                                                                sub, entries);
                                                         return CompletableFuture.runAsync(
                                                                 () ->
                                                                         notifier
