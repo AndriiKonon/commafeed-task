@@ -22,11 +22,9 @@ import java.time.Duration;
 @ApplicationScoped
 public class GroqLlmService implements LlmService {
 
-    private static final String API_KEY_ENV = "GROQ_API_KEY";
-    private static final String API_URL_ENV = "GROQ_API_URL";
-    private static final String MODEL_ENV = "GROQ_MODEL";
-    private static final String DEFAULT_API_URL = "https://api.groq.com/openai/v1/chat/completions";
-    private static final String DEFAULT_MODEL = "llama-3.1-8b-instant";
+    private static final String API_KEY_ENV = "GEMINI_API_KEY";
+    private static final String API_URL =
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=";
 
     private final ObjectMapper objectMapper;
 
@@ -40,18 +38,14 @@ public class GroqLlmService implements LlmService {
 
         try {
             ObjectNode requestBody = objectMapper.createObjectNode();
-            requestBody.put("model", environmentValue(MODEL_ENV, DEFAULT_MODEL));
-            requestBody.put("temperature", 0.7);
-
-            ArrayNode messages = requestBody.putArray("messages");
-            messages.addObject().put("role", "system").put("content", prompt);
-            messages.addObject().put("role", "user").put("content", input);
+            ArrayNode contents = requestBody.putArray("contents");
+            ObjectNode parts = contents.addObject().putArray("parts").addObject();
+            parts.put("text", input + " " + prompt);
 
             HttpRequest request =
                     HttpRequest.newBuilder()
-                            .uri(URI.create(environmentValue(API_URL_ENV, DEFAULT_API_URL)))
+                            .uri(URI.create(API_URL + apiKey))
                             .timeout(Duration.ofSeconds(30))
-                            .header("Authorization", "Bearer " + apiKey)
                             .header("Content-Type", "application/json")
                             .POST(
                                     HttpRequest.BodyPublishers.ofString(
@@ -61,17 +55,17 @@ public class GroqLlmService implements LlmService {
             HttpResponse<String> response =
                     HttpClient.newHttpClient().send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                log.warn("LLM provider returned HTTP status {}", response.statusCode());
+                log.warn("Gemini returned HTTP status {}", response.statusCode());
                 throw new LlmServiceException(
                         LlmServiceException.Kind.UPSTREAM_FAILURE, "LLM provider request failed");
             }
 
             JsonNode content =
-                    objectMapper.readTree(response.body()).at("/choices/0/message/content");
+                    objectMapper.readTree(response.body()).at("/candidates/0/content/parts/0/text");
             if (!content.isTextual() || content.asText().isBlank()) {
                 throw new LlmServiceException(
                         LlmServiceException.Kind.UPSTREAM_FAILURE,
-                        "LLM provider returned an invalid response");
+                        "Gemini returned an invalid response");
             }
             return content.asText();
         } catch (LlmServiceException e) {
@@ -79,17 +73,10 @@ public class GroqLlmService implements LlmService {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new LlmServiceException(
-                    LlmServiceException.Kind.UPSTREAM_FAILURE,
-                    "LLM provider request was interrupted",
-                    e);
+                    LlmServiceException.Kind.UPSTREAM_FAILURE, "Gemini request was interrupted", e);
         } catch (IOException | RuntimeException e) {
             throw new LlmServiceException(
-                    LlmServiceException.Kind.UPSTREAM_FAILURE, "LLM provider request failed", e);
+                    LlmServiceException.Kind.UPSTREAM_FAILURE, "Gemini request failed", e);
         }
-    }
-
-    private static String environmentValue(String name, String defaultValue) {
-        String value = System.getenv(name);
-        return value == null || value.isBlank() ? defaultValue : value;
     }
 }

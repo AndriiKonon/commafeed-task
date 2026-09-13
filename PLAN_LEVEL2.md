@@ -27,7 +27,8 @@ provider implementation:
 1. Define an `LlmService` interface with an operation that accepts the feed
    entry content and returns generated alternative text.
 2. Implement a provider adapter for the selected deployment:
-   - Groq or Gemini for a hosted API, using an environment-provided API key.
+   - Google Gemini for a hosted API, using the `GEMINI_API_KEY` environment
+     variable.
    - Ollama for a local deployment, using a configurable base URL and no
      committed secret.
 3. Read provider selection, model, endpoint, and credentials from environment

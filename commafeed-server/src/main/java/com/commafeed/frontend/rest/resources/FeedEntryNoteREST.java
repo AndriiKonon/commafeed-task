@@ -21,7 +21,7 @@ import jakarta.ws.rs.core.Response;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-@Path("/entry/note")
+@Path("/rest/entry/note")
 @RolesAllowed(Roles.USER)
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)

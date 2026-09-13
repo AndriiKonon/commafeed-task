@@ -273,15 +273,14 @@ curl -i -b cookies.txt -X DELETE \
 
 ### Level 2: LLM alternative generation
 
-Configure the Groq-compatible provider without committing credentials:
+Configure the Google Gemini provider without committing credentials:
 
 ```powershell
-$env:GROQ_API_KEY = "<your-key>"
-$env:GROQ_MODEL = "llama-3.1-8b-instant"
+$env:GEMINI_API_KEY = "<your-key>"
 ```
 
-`GROQ_API_URL` is optional and defaults to
-`https://api.groq.com/openai/v1/chat/completions`. The endpoint accepts
+The service targets the Gemini 1.5 Flash
+`generateContent` endpoint. The endpoint accepts
 `target` values `title` or `content` and a prompt:
 
 ```bash
