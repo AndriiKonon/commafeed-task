@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="add-feedentrynotes-table" author="commafeed">
+        <createTable tableName="FEEDENTRYNOTES">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_note_user" references="USERS(id)"/>
+            </column>
+            <column name="entry_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_note_entry" references="FEEDENTRIES(id)"/>
+            </column>
+            <column name="comment" type="VARCHAR(1000)"/>
+            <column name="rating" type="INT"/>
+            <column name="created" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>
