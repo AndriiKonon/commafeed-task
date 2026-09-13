@@ -203,7 +203,7 @@ two-letters [ISO-639-1 language code](http://en.wikipedia.org/wiki/List_of_ISO_6
 
 - Open `commafeed-server` in your preferred Java IDE.
     - CommaFeed uses Lombok, you need the Lombok plugin for your IDE.
-- run `./mvnw quarkus:dev`
+- On Windows, run `.\mvnw.cmd quarkus:dev`; on Unix-like systems, run `./mvnw quarkus:dev`.
 
 ### Frontend
 
@@ -213,3 +213,115 @@ two-letters [ISO-639-1 language code](http://en.wikipedia.org/wiki/List_of_ISO_6
 
 The frontend server is now running at http://localhost:8082 and is proxying REST requests to the backend running on
 port 8083
+
+## API setup and examples
+
+Build and run the server with the Maven wrapper:
+
+```powershell
+.\mvnw.cmd spotless:apply -pl commafeed-server
+.\mvnw.cmd -pl commafeed-server -DskipTests compile "-Dmaven.compiler.release=21"
+.\mvnw.cmd -pl commafeed-server quarkus:dev
+```
+
+The examples below assume an authenticated session cookie is stored in
+`cookies.txt` and the server is listening on `http://localhost:8082`. Replace
+`123` with an entry ID visible to the authenticated user.
+
+### Level 1: feed entry notes
+
+Save or update a note:
+
+```bash
+curl -i -b cookies.txt -H "Content-Type: application/json" \
+  -X POST http://localhost:8082/entry/note/save \
+  -d '{"entryId":123,"comment":"Useful reference","rating":5}'
+```
+
+Example response:
+
+```text
+HTTP/1.1 200 OK
+```
+
+Retrieve a note:
+
+```bash
+curl -s -b cookies.txt \
+  http://localhost:8082/entry/note/get/123
+```
+
+Example response:
+
+```json
+{
+  "id": 7,
+  "user": null,
+  "feedEntry": null,
+  "comment": "Useful reference",
+  "rating": 5,
+  "created": "2026-09-13T14:00:00.000+00:00"
+}
+```
+
+Delete a note:
+
+```bash
+curl -i -b cookies.txt -X DELETE \
+  http://localhost:8082/entry/note/delete/123
+```
+
+### Level 2: LLM alternative generation
+
+Configure the Groq-compatible provider without committing credentials:
+
+```powershell
+$env:GROQ_API_KEY = "<your-key>"
+$env:GROQ_MODEL = "llama-3.1-8b-instant"
+```
+
+`GROQ_API_URL` is optional and defaults to
+`https://api.groq.com/openai/v1/chat/completions`. The endpoint accepts
+`target` values `title` or `content` and a prompt:
+
+```bash
+curl -s -b cookies.txt -H "Content-Type: application/json" \
+  -X POST http://localhost:8082/entry/123/generate-alternative \
+  -d '{"target":"title","prompt":"Make this concise and engaging"}'
+```
+
+Example successful response:
+
+```json
+{
+  "originalEntry": {
+    "id": 123,
+    "title": "A long original title",
+    "content": "<p>Original article content.</p>"
+  },
+  "target": "title",
+  "prompt": "Make this concise and engaging",
+  "alternative": "A concise, engaging title"
+}
+```
+
+Missing or inaccessible entries return `404 Not Found`. Invalid requests return
+`400 Bad Request`; an unconfigured provider returns `503 Service Unavailable`;
+and an upstream LLM or response-parsing failure returns `502 Bad Gateway`.
+Error responses contain a safe message and never expose a stack trace or API
+credential.
+
+## My AI workflow
+
+- **Tool selection:** I use repository-aware file search and focused file reads
+  for conventions, `apply_patch` for surgical edits, and the Maven wrapper for
+  formatting, compilation, and tests. I avoid broad searches and unrelated
+  frontend changes when the task is server-side.
+- **Context management:** I inspect the closest analogous class first, then
+  read only the configuration, DTO, service, DAO, and exception files needed to
+  wire the feature consistently. Existing instructions and plans are treated
+  as constraints rather than duplicated in code.
+- **Token optimization:** I batch independent reads, use targeted ranges and
+  search limits, avoid repeating unchanged file contents, and delegate only
+  work that benefits from an independent context. Validation is kept targeted
+  before escalating to broader builds.
